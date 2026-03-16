@@ -70,15 +70,21 @@ select:focus,input:focus{border-color:var(--ink2)}
 
 /* ── EXPLORE ── */
 .gc-wrap{display:grid;grid-template-columns:460px 1fr;gap:2.5rem;align-items:center}
-.bars{display:flex;flex-direction:column;gap:.38rem}
-.br{display:flex;align-items:center;gap:.55rem;cursor:pointer;border-radius:6px;padding:2px 4px;transition:background .12s}
+
+
+/* ── explore: donut left + ranking right ── */
+.dist-wrap{display:grid;grid-template-columns:440px 1fr;gap:2.5rem;align-items:start}
+.donut-wrap{display:flex;justify-content:center;position:sticky;top:0}
+.ranking-panel{display:flex;flex-direction:column;gap:.5rem}
+.ranking-label{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:.4rem;padding-bottom:.4rem;border-bottom:1px solid var(--rule)}
+.bars{display:flex;flex-direction:column;gap:.3rem}
+.br{display:flex;align-items:center;gap:.55rem;cursor:pointer;border-radius:6px;padding:3px 5px;transition:background .12s}
 .br:hover,.br.hl{background:rgba(28,23,20,.05)}
 .br.hl .bn{color:var(--ink);font-weight:500}
-.bn{width:86px;font-size:1.2rem;text-align:right;color:var(--ink2);text-transform:capitalize;flex-shrink:0;transition:color .15s}
-.bt{flex:1;height:15px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.bn{width:82px;font-size:.84rem;text-align:right;color:var(--ink2);text-transform:capitalize;flex-shrink:0;transition:color .12s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bt{flex:1;height:13px;background:var(--bg2);border-radius:3px;overflow:hidden}
 .bf{height:100%;border-radius:3px;transition:width .95s cubic-bezier(.4,0,.2,1),opacity .2s;width:0}
-.bv{font-size:1.14rem;color:var(--ink3);width:24px;flex-shrink:0;text-align:right}
-.donut-wrap{display:flex;justify-content:center}
+.bv{font-size:.78rem;color:var(--ink3);width:28px;flex-shrink:0;text-align:right}
 
 .catgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem}
 .cpanel{border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;background:white}
@@ -181,19 +187,22 @@ footer{border-top:1px solid var(--rule);padding:.8rem 3rem;display:flex;align-it
 
 @media(max-width:920px){
   .app{grid-template-columns:1fr}
-  .gc-wrap{grid-template-columns:1fr}
+  .dist-wrap{grid-template-columns:1fr}
   .catgrid,.cmp-setup,.exclgrid{grid-template-columns:1fr}
   header,footer,.tabs{padding-left:1.5rem;padding-right:1.5rem}
   .content{padding:1.25rem 1.5rem 1.5rem}
 }
 
 @media(max-width:768px){
+  .dist-wrap{grid-template-columns:1fr}
+  .donut-wrap svg{width:280px!important;height:280px!important}
+
   html{font-size:17px}
   header{padding:1.2rem 1.2rem 1rem}
   .tabs{padding:0 1.2rem}
   .content{padding:1rem 1.2rem 1.5rem}
   .sidebar{padding:1rem}
-  .gc-wrap{grid-template-columns:1fr}
+  
   .catgrid,.cmp-setup,.exclgrid{grid-template-columns:1fr}
   .logo-block h1{font-size:2rem}
   select,input[type=text]{font-size:.9rem;padding:.4rem .65rem}
@@ -284,9 +293,12 @@ footer{border-top:1px solid var(--rule);padding:.8rem 3rem;display:flex;align-it
 <div id="P-explore" class="panel on">
   <div>
     <div class="slabel">Overall Colour Distribution</div>
-    <div class="gc-wrap">
-      <div class="donut-wrap"><svg id="donut" width="460" height="460" viewBox="0 0 460 460"></svg></div>
-      <div class="bars" id="bars"><div class="empty">Click "Update Visualisation"</div></div>
+    <div class="dist-wrap">
+      <div class="donut-wrap"><svg id="donut" width="440" height="440" viewBox="0 0 560 560" style="filter:drop-shadow(0 6px 28px rgba(28,23,20,.10))"></svg></div>
+      <div class="ranking-panel">
+        <div class="ranking-label">Colour ranking</div>
+        <div class="bars" id="bars"><div class="empty">Click "Update Visualisation"</div></div>
+      </div>
     </div>
   </div>
   <div>
@@ -462,7 +474,7 @@ function renderExplore(data){
   const sorted=Object.entries(ct).sort((a,b)=>b[1]-a[1]);
   const grand=sorted.reduce((s,[,v])=>s+v,0);
   const maxN=sorted[0]?.[1]||1;
-  document.getElementById('bars').innerHTML=[...sorted].reverse().map(([nm,n])=>`
+  document.getElementById('bars').innerHTML=sorted.map(([nm,n])=>`
     <div class="br" data-c="${nm}" onmouseenter="hl('${nm}')" onmouseleave="clr()">
       <div class="bn">${nm}</div>
       <div class="bt"><div class="bf" data-w="${Math.round(n/maxN*100)}" style="width:0;background:${gc(nm)}"></div></div>
@@ -480,11 +492,11 @@ function renderExplore(data){
 // ── DONUT ──
 function drawDonut(sorted,total){
   const svg=document.getElementById('donut');svg.innerHTML='';
-  const cx=230,cy=230,R=205,ri=118;
+  const cx=280,cy=280,R=252,ri=148;
   const top=sorted.slice(0,14);
   const rest=sorted.slice(14).reduce((s,[,v])=>s+v,0);
-  const dd=rest>0?[...top,['other',rest]]:top;
-  const data=[...dd].reverse();
+  // Draw biggest→smallest clockwise; 'other' is last so it sits at bottom-right ending at 12 o'clock
+  const data=rest>0?[...top,['other',rest]]:top;
   const dt=data.reduce((s,[,v])=>s+v,0);
   const ls=(n)=>{const c=gc(n);return(c==='#f0ece6'||c==='#f5f0e0'||c==='#f0e8c0')?'#c8c0b8':'#f7f4ef';};
   let a=-Math.PI/2;
@@ -498,14 +510,14 @@ function drawDonut(sorted,total){
     const d=`M${x1},${y1} A${R},${R} 0 ${lg},1 ${x2},${y2} L${i1},${j1} A${ri},${ri} 0 ${lg},0 ${i2},${j2} Z`;
     const p=document.createElementNS('http://www.w3.org/2000/svg','path');
     p.setAttribute('d',d);p.setAttribute('fill',gc(nm));p.setAttribute('stroke',ls(nm));p.setAttribute('stroke-width','1.5');
-    p.dataset.colour=nm;p.style.cssText='transition:opacity .2s,transform .15s;transform-origin:230px 230px;cursor:pointer';
+    p.dataset.colour=nm;p.style.cssText='transition:opacity .2s,transform .15s;transform-origin:280px 280px;cursor:pointer';
     p.addEventListener('mouseenter',()=>{hl(nm);p.style.transform='scale(1.035)';});
     p.addEventListener('mouseleave',()=>{clr();p.style.transform='';});
     svg.appendChild(p);a=e;
   }
   const mkT=(t,y,sz,fill,fnt)=>{const el=document.createElementNS('http://www.w3.org/2000/svg','text');el.setAttribute('x',cx);el.setAttribute('y',y);el.setAttribute('text-anchor','middle');el.setAttribute('fill',fill);el.setAttribute('font-size',sz);el.setAttribute('font-family',fnt||'Jost,sans-serif');el.textContent=t;svg.appendChild(el);return el;};
-  svg._cn=mkT(total,224,42,'#1c1714','Cormorant Garamond,serif');
-  svg._cl=mkT('species',253,19,'#6b5e54');
+  svg._cn=mkT(total,272,50,'#1c1714','Cormorant Garamond,serif');
+  svg._cl=mkT('species',306,21,'#6b5e54');
   svg._total=total;svg._data=data;svg._dt=dt;
 }
 function hl(nm){
