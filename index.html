@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloom Spectrum — Flower Color Explorer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #f7f4ef;
+  --bg2:       #ede8e0;
+  --ink:       #1c1714;
+  --ink2:      #6b5e54;
+  --rule:      rgba(28,23,20,0.12);
+  --herb:      #4a7c59;
+  --herb-bg:   #eaf3ec;
+  --shrub:     #8b5e3c;
+  --shrub-bg:  #f5ede4;
+  --tree:      #3a5a8c;
+  --tree-bg:   #e8eef8;
+  --geo:       #5a5a7a;
+  --geo-bg:    #eeeef5;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Jost', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ── */
+header {
+  border-bottom: 1px solid var(--rule);
+  padding: 2.5rem 3rem 2rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.header-title h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 300;
+  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.header-title h1 em { font-style: italic; color: var(--ink2); }
+.header-title p {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink2);
+}
+
+/* ── MAIN LAYOUT ── */
+.main {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  flex: 1;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  border-right: 1px solid var(--rule);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow-y: auto;
+}
+
+/* Geographic filter block */
+.geo-block {
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.geo-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.67rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border-bottom: 1px solid var(--rule);
+  background: var(--geo-bg);
+  color: var(--geo);
+}
+
+.geo-selects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  background: white;
+}
+
+.geo-select-wrap {
+  padding: 0.6rem 0.75rem;
+}
+.geo-select-wrap:first-child { border-right: 1px solid var(--rule); }
+
+.geo-select-wrap label {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink2);
+  margin-bottom: 0.3rem;
+}
+
+.geo-select-wrap select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  padding: 0.35rem 0.6rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
+  color: var(--ink);
+  outline: none;
+  cursor: pointer;
+}
+.geo-select-wrap select:focus { border-color: var(--geo); }
+
+/* Plant category blocks */
+.category-block {
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.67rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border-bottom: 1px solid var(--rule);
+}
+.category-header.herb  { background: var(--herb-bg);  color: var(--herb); }
+.category-header.shrub { background: var(--shrub-bg); color: var(--shrub); }
+.category-header.tree  { background: var(--tree-bg);  color: var(--tree); }
+
+.plant-list {
+  padding: 0.65rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  background: white;
+}
+
+.plant-tag {
+  padding: 0.25rem 0.65rem;
+  border-radius: 100px;
+  font-size: 0.73rem;
+  border: 1px solid var(--rule);
+  background: var(--bg);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  color: var(--ink2);
+}
+.plant-tag.active.herb  { background: var(--herb-bg);  border-color: var(--herb);  color: var(--herb); }
+.plant-tag.active.shrub { background: var(--shrub-bg); border-color: var(--shrub); color: var(--shrub); }
+.plant-tag.active.tree  { background: var(--tree-bg);  border-color: var(--tree);  color: var(--tree); }
+.plant-tag:hover { border-color: var(--ink2); }
+
+.add-row {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.45rem 0.65rem 0.65rem;
+  border-top: 1px solid var(--rule);
+  background: white;
+}
+
+.add-row input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 7px;
+  padding: 0.32rem 0.65rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.73rem;
+  color: var(--ink);
+  outline: none;
+}
+.add-row input:focus { border-color: var(--ink2); }
+.add-row input::placeholder { color: #ccc; }
+
+.add-btn {
+  background: var(--ink);
+  color: white;
+  border: none;
+  border-radius: 7px;
+  padding: 0.32rem 0.75rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.add-btn:hover { opacity: 0.7; }
+
+.analyze-btn {
+  width: 100%;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 10px;
+  padding: 0.85rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  letter-spacing: 0.02em;
+}
+.analyze-btn:hover { opacity: 0.8; }
+.analyze-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── CONTENT ── */
+.content {
+  padding: 2rem 2.5rem 2rem;
+  overflow-y: auto;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.8rem 1.1rem;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  font-size: 0.78rem;
+  color: var(--ink2);
+  margin-bottom: 1.75rem;
+  background: white;
+}
+.status.running { border-color: #c8b04a; color: #8a7020; background: #fdf8ea; }
+.status.done    { border-color: #6aaa70; color: #3a7040; background: #edf7ee; }
+.status.error   { border-color: #cc7070; color: #8a3030; background: #fdeaea; }
+
+.spinner {
+  width: 13px; height: 13px;
+  border: 2px solid rgba(0,0,0,0.1);
+  border-top-color: #c8b04a;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#results { display: none; }
+
+.section-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink2);
+  margin-bottom: 1rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Global chart */
+.global-chart {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 2.5rem;
+  margin-bottom: 2.5rem;
+  align-items: center;
+}
+
+.bar-list { display: flex; flex-direction: column; gap: 0.45rem; }
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 2px 4px;
+  transition: background 0.15s;
+}
+.bar-row:hover, .bar-row.highlighted { background: rgba(28,23,20,0.05); }
+.bar-row.highlighted .bar-name { color: var(--ink); font-weight: 500; }
+
+.bar-name {
+  width: 88px;
+  font-size: 0.74rem;
+  text-align: right;
+  color: var(--ink2);
+  text-transform: capitalize;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.bar-track {
+  flex: 1;
+  height: 17px;
+  background: var(--bg2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.9s cubic-bezier(0.4,0,0.2,1), opacity 0.2s;
+  width: 0;
+}
+
+.bar-n { font-size: 0.68rem; color: var(--ink2); width: 24px; flex-shrink: 0; text-align: right; }
+
+.donut-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Category panels */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.9rem;
+  margin-bottom: 2.25rem;
+}
+
+.cat-panel { border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+
+.cat-panel-header {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.cat-panel-header.herb  { background: var(--herb-bg);  color: var(--herb); }
+.cat-panel-header.shrub { background: var(--shrub-bg); color: var(--shrub); }
+.cat-panel-header.tree  { background: var(--tree-bg);  color: var(--tree); }
+
+.cat-mosaic {
+  padding: 0.65rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  background: white;
+  min-height: 48px;
+}
+
+.mini-tile {
+  display: flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.2rem 0.5rem 0.2rem 0.32rem;
+  border-radius: 100px;
+  border: 1px solid var(--rule);
+  font-size: 0.68rem;
+  color: var(--ink2);
+  background: var(--bg);
+}
+
+.mini-circle {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* Species cards */
+.species-section { margin-bottom: 1rem; }
+
+.species-cat-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin: 1.4rem 0 0.65rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.species-cat-label.herb  { color: var(--herb); }
+.species-cat-label.shrub { color: var(--shrub); }
+.species-cat-label.tree  { color: var(--tree); }
+.species-cat-label::after { content:''; flex:1; height:1px; background:var(--rule); }
+
+.species-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  gap: 0.65rem;
+}
+
+.sp-card {
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 0.85rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.sp-card:hover { border-color: var(--ink2); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+
+.sp-scientific {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.88rem;
+  margin-bottom: 0.12rem;
+  line-height: 1.3;
+}
+.sp-common { font-size: 0.68rem; color: var(--ink2); margin-bottom: 0.6rem; }
+.sp-geo    { font-size: 0.62rem; color: var(--geo);  margin-bottom: 0.55rem; font-style: italic; }
+
+.sp-colors { display: flex; flex-wrap: wrap; gap: 0.28rem; }
+
+.sp-color-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.16rem 0.45rem 0.16rem 0.28rem;
+  border-radius: 100px;
+  background: var(--bg2);
+  font-size: 0.65rem;
+  color: var(--ink2);
+  text-transform: capitalize;
+}
+.sp-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.08); }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--rule);
+  padding: 1rem 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-shrink: 0;
+  background: white;
+  flex-wrap: wrap;
+}
+
+.footer-author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-logo-link { display: flex; align-items: center; flex-shrink: 0; }
+
+.footer-logo-img {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.88;
+  transition: opacity 0.2s;
+}
+.footer-logo-img:hover { opacity: 1; }
+
+.footer-name-link {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid var(--rule);
+  transition: border-color 0.2s, color 0.2s;
+}
+.footer-name-link:hover {
+  color: var(--ink2);
+  border-bottom-color: var(--ink2);
+}
+
+.footer-note {
+  font-size: 0.65rem;
+  color: var(--ink2);
+  text-align: right;
+  line-height: 1.6;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+  .main { grid-template-columns: 1fr; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--rule); }
+  .categories-grid { grid-template-columns: 1fr; }
+  .global-chart { grid-template-columns: 1fr; }
+  header { padding: 1.75rem 1.5rem 1.25rem; }
+  .content { padding: 1.5rem; }
+  .sidebar { padding: 1.5rem; }
+  footer { padding: 1rem 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <h1>Bloom <em>Spectrum</em></h1>
+    <p>Flower colour frequency by plant type &amp; geography</p>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <!-- Geographic filter -->
+    <div class="geo-block">
+      <div class="geo-header">🌍 Geographic Filter</div>
+      <div class="geo-selects">
+        <div class="geo-select-wrap">
+          <label>Continent</label>
+          <select id="selContinent">
+            <option value="worldwide">Worldwide</option>
+            <option value="Europe">Europe</option>
+            <option value="Asia">Asia</option>
+            <option value="North America">North America</option>
+            <option value="South America">South America</option>
+            <option value="Africa">Africa</option>
+            <option value="Oceania">Oceania</option>
+            <option value="Mediterranean">Mediterranean</option>
+          </select>
+        </div>
+        <div class="geo-select-wrap">
+          <label>Biome</label>
+          <select id="selBiome">
+            <option value="all biomes">All biomes</option>
+            <option value="Mediterranean">Mediterranean</option>
+            <option value="Tropical rainforest">Tropical rainforest</option>
+            <option value="Temperate forest">Temperate forest</option>
+            <option value="Grassland / Prairie">Grassland / Prairie</option>
+            <option value="Alpine / Mountain">Alpine / Mountain</option>
+            <option value="Desert">Desert</option>
+            <option value="Wetland">Wetland</option>
+            <option value="Boreal forest">Boreal forest</option>
+            <option value="Subtropical">Subtropical</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Herbaceous -->
+    <div class="category-block">
+      <div class="category-header herb">🌿 Herbaceous Plants</div>
+      <div class="plant-list" id="herbList">
+        <div class="plant-tag active herb" data-cat="herb">Rose</div>
+        <div class="plant-tag active herb" data-cat="herb">Tulip</div>
+        <div class="plant-tag active herb" data-cat="herb">Sunflower</div>
+        <div class="plant-tag active herb" data-cat="herb">Orchid</div>
+        <div class="plant-tag active herb" data-cat="herb">Lavender</div>
+        <div class="plant-tag active herb" data-cat="herb">Daisy</div>
+        <div class="plant-tag active herb" data-cat="herb">Poppy</div>
+        <div class="plant-tag active herb" data-cat="herb">Iris</div>
+        <div class="plant-tag herb" data-cat="herb">Dahlia</div>
+        <div class="plant-tag herb" data-cat="herb">Peony</div>
+        <div class="plant-tag herb" data-cat="herb">Lily</div>
+        <div class="plant-tag herb" data-cat="herb">Carnation</div>
+      </div>
+      <div class="add-row">
+        <input type="text" placeholder="Add herbaceous…" id="addHerb" />
+        <button class="add-btn" onclick="addPlant('herb')">+</button>
+      </div>
+    </div>
+
+    <!-- Shrubs -->
+    <div class="category-block">
+      <div class="category-header shrub">🌳 Shrubs</div>
+      <div class="plant-list" id="shrubList">
+        <div class="plant-tag active shrub" data-cat="shrub">Hydrangea</div>
+        <div class="plant-tag active shrub" data-cat="shrub">Bougainvillea</div>
+        <div class="plant-tag active shrub" data-cat="shrub">Azalea</div>
+        <div class="plant-tag active shrub" data-cat="shrub">Hibiscus</div>
+        <div class="plant-tag active shrub" data-cat="shrub">Camellia</div>
+        <div class="plant-tag shrub" data-cat="shrub">Gardenia</div>
+        <div class="plant-tag shrub" data-cat="shrub">Forsythia</div>
+        <div class="plant-tag shrub" data-cat="shrub">Rhododendron</div>
+        <div class="plant-tag shrub" data-cat="shrub">Jasmine</div>
+        <div class="plant-tag shrub" data-cat="shrub">Wisteria</div>
+      </div>
+      <div class="add-row">
+        <input type="text" placeholder="Add shrub…" id="addShrub" />
+        <button class="add-btn" onclick="addPlant('shrub')">+</button>
+      </div>
+    </div>
+
+    <!-- Trees -->
+    <div class="category-block">
+      <div class="category-header tree">🌲 Flowering Trees</div>
+      <div class="plant-list" id="treeList">
+        <div class="plant-tag active tree" data-cat="tree">Cherry Blossom</div>
+        <div class="plant-tag active tree" data-cat="tree">Magnolia</div>
+        <div class="plant-tag active tree" data-cat="tree">Jacaranda</div>
+        <div class="plant-tag active tree" data-cat="tree">Dogwood</div>
+        <div class="plant-tag active tree" data-cat="tree">Flamboyant</div>
+        <div class="plant-tag tree" data-cat="tree">Baobab</div>
+        <div class="plant-tag tree" data-cat="tree">Tulip Tree</div>
+        <div class="plant-tag tree" data-cat="tree">Golden Shower Tree</div>
+        <div class="plant-tag tree" data-cat="tree">Plumeria</div>
+        <div class="plant-tag tree" data-cat="tree">Paulownia</div>
+      </div>
+      <div class="add-row">
+        <input type="text" placeholder="Add flowering tree…" id="addTree" />
+        <button class="add-btn" onclick="addPlant('tree')">+</button>
+      </div>
+    </div>
+
+    <button class="analyze-btn" id="analyzeBtn" onclick="startAnalysis()">
+      Analyse Colour Frequencies
+    </button>
+
+  </aside>
+
+  <!-- ── CONTENT ── -->
+  <main class="content">
+
+    <div class="status" id="status">
+      Select plants and a geographic context, then click Analyse.
+    </div>
+
+    <div id="results">
+
+      <div class="section-label">Overall Colour Distribution</div>
+      <div class="global-chart">
+        <div class="donut-wrap">
+          <svg id="donut" width="240" height="240" viewBox="0 0 240 240"></svg>
+        </div>
+        <div class="bar-list" id="barList"></div>
+      </div>
+
+      <div class="section-label">Colour Profile by Category</div>
+      <div class="categories-grid">
+        <div class="cat-panel">
+          <div class="cat-panel-header herb">🌿 Herbaceous</div>
+          <div class="cat-mosaic" id="herbMosaic"></div>
+        </div>
+        <div class="cat-panel">
+          <div class="cat-panel-header shrub">🌳 Shrubs</div>
+          <div class="cat-mosaic" id="shrubMosaic"></div>
+        </div>
+        <div class="cat-panel">
+          <div class="cat-panel-header tree">🌲 Flowering Trees</div>
+          <div class="cat-mosaic" id="treeMosaic"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Species Detail</div>
+      <div class="species-section">
+        <div class="species-cat-label herb">🌿 Herbaceous Plants</div>
+        <div class="species-cards" id="herbCards"></div>
+        <div class="species-cat-label shrub">🌳 Shrubs</div>
+        <div class="species-cards" id="shrubCards"></div>
+        <div class="species-cat-label tree">🌲 Flowering Trees</div>
+        <div class="species-cards" id="treeCards"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-author">
+    <a href="https://mbg.csic.es" target="_blank" rel="noopener" class="footer-logo-link">
+      <img src="https://mbg.csic.es/wp-content/uploads/2025/09/cropped-logoweb-CsicMbg-large.png"
+           alt="MBG-CSIC Logo" class="footer-logo-img" height="42">
+    </a>
+    <a href="https://dominicroye.github.io/" target="_blank" rel="noopener" class="footer-name-link">
+      Dr Dominic Royé
+    </a>
+  </div>
+  <div class="footer-note">
+    Bloom Spectrum · Flower Colour Explorer<br>
+    Based on botanical training data · Co-generated by <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--ink2);text-decoration:none;border-bottom:1px solid var(--rule);">claude.ai</a>
+  </div>
+</footer>
+
+<script>
+const COLOUR_MAP = {
+  white:'#f5f2ee', red:'#d93030', pink:'#e8709a', yellow:'#f0c820',
+  orange:'#f07820', purple:'#7840c0', violet:'#6050c8', blue:'#2858d0',
+  'light blue':'#60a8e0', green:'#38a050', lilac:'#b480cc', magenta:'#cc3898',
+  cream:'#f0e8c0', salmon:'#f09070', coral:'#f06050', burgundy:'#8b1a3a',
+  fuchsia:'#e03898', indigo:'#3838a0', lavender:'#b090d0', black:'#2a2030',
+  silver:'#c0b8c8', gold:'#d4a820', turquoise:'#38c0b0', mauve:'#c080a8',
+  peach:'#f0c098', ivory:'#f5f0e0', maroon:'#7a1030', rose:'#e06080',
+  scarlet:'#d02030', crimson:'#b01830', amber:'#f0a020', apricot:'#f0a870',
+  'pale yellow':'#f5e898', 'deep pink':'#d04080', 'light pink':'#f0b8cc',
+  'pale pink':'#f5d0dc', bronze:'#b08040', chartreuse:'#a0c020',
+  'dark purple':'#50207a', 'dark red':'#900000', 'bright yellow':'#f5d800',
+};
+
+function getColour(name) {
+  const n = (name||'').toLowerCase();
+  for (const [k,v] of Object.entries(COLOUR_MAP)) {
+    if (n.includes(k)) return v;
+  }
+  return '#a8a0b0';
+}
+
+function cap(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+
+document.querySelectorAll('.plant-tag').forEach(t =>
+  t.addEventListener('click', () => t.classList.toggle('active'))
+);
+
+['herb','shrub','tree'].forEach(cat => {
+  const inp = document.getElementById('add'+cap(cat));
+  if (inp) inp.addEventListener('keydown', e => { if (e.key==='Enter') addPlant(cat); });
+});
+
+function addPlant(cat) {
+  const input = document.getElementById('add'+cap(cat));
+  const val = input.value.trim();
+  if (!val) return;
+  const list = document.getElementById(cat+'List');
+  const existing = [...list.querySelectorAll('.plant-tag')].map(t=>t.textContent.toLowerCase());
+  if (existing.includes(val.toLowerCase())) { input.value=''; return; }
+  const tag = document.createElement('div');
+  tag.className = `plant-tag active ${cat}`;
+  tag.dataset.cat = cat;
+  tag.textContent = val;
+  tag.addEventListener('click', () => tag.classList.toggle('active'));
+  list.appendChild(tag);
+  input.value = '';
+}
+
+function setStatus(msg, state) {
+  const el = document.getElementById('status');
+  el.className = 'status'+(state?' '+state:'');
+  el.innerHTML = state==='running'
+    ? `<div class="spinner"></div><span>${msg}</span>`
+    : `<span>${msg}</span>`;
+}
+
+function getSelections() {
+  const r = { herb:[], shrub:[], tree:[] };
+  document.querySelectorAll('.plant-tag.active').forEach(t => {
+    const c = t.dataset.cat;
+    if (r[c]) r[c].push(t.textContent.trim());
+  });
+  return r;
+}
+
+async function startAnalysis() {
+  const sel  = getSelections();
+  const total = sel.herb.length + sel.shrub.length + sel.tree.length;
+  if (!total) { setStatus('Please select at least one plant.','error'); return; }
+
+  const continent = document.getElementById('selContinent').value;
+  const biome     = document.getElementById('selBiome').value;
+  const geoCtx    = continent==='worldwide' && biome==='all biomes'
+    ? 'worldwide, across all biomes'
+    : [continent!=='worldwide'?`in ${continent}`:'', biome!=='all biomes'?`in ${biome} biomes`:''].filter(Boolean).join(', ');
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  document.getElementById('results').style.display='none';
+  setStatus(`Analysing ${total} plants ${geoCtx}…`,'running');
+
+  const prompt = `You are an expert botanist with deep knowledge of plant systematics and floral biology.
+
+TASK: Report the flower colour diversity of the plants listed below, under a specific geographic context.
+
+Geographic context: ${geoCtx}
+
+SAMPLING STRATEGY — apply to every plant/genus:
+1. Estimate the total number of accepted species in the genus (e.g. Rosa ~300 spp., Orchidaceae ~28,000 spp., Tulipa ~100 spp.).
+2. Select a representative sample of approximately 10% of those species, prioritising:
+   a) Species native to or naturalised in the specified geographic context (${geoCtx})
+   b) The most well-known, widely cultivated, or ecologically significant species/cultivars
+   c) Species that maximise colour diversity within the genus
+3. From that ~10% sample, compile the full documented range of flower colours.
+4. Report the approximate total species count and how many you sampled in geo_note.
+
+Plants to analyse:
+- Herbaceous: ${sel.herb.join(', ')||'none'}
+- Shrubs: ${sel.shrub.join(', ')||'none'}
+- Flowering trees: ${sel.tree.join(', ')||'none'}
+
+Return ONLY a valid JSON object. No markdown, no backticks, no extra text:
+{
+  "context": "${geoCtx}",
+  "plants": [
+    {
+      "common_name": "Rose",
+      "scientific_name": "Rosa spp.",
+      "category": "herb",
+      "geo_note": "~300 spp. total; sampled ~30 key species native to temperate N. Hemisphere and cultivars",
+      "colours": ["red", "pink", "white", "yellow", "orange", "purple", "cream", "dark red", "apricot"]
+    }
+  ]
+}
+
+Rules:
+- category: exactly "herb", "shrub", or "tree"
+- geo_note: include total species count, sample size (~10%), and geographic relevance — one sentence max
+- colours: full range documented across the sampled species, lowercase English; include as many as genuinely occur (typically 3–12 for large genera)
+- Prioritise species from the geographic context; if absent from the region, note it in geo_note
+- Be botanically rigorous and accurate`;
+
+  try {
+    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 3000,
+        messages: [{ role:"user", content: prompt }]
+      })
+    });
+
+    if (!resp.ok) {
+      const e = await resp.json().catch(()=>({}));
+      throw new Error(`API ${resp.status}: ${e.error?.message||resp.statusText}`);
+    }
+
+    const data = await resp.json();
+    const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    if (!text) throw new Error('Empty API response');
+
+    const j0=text.indexOf('{'), j1=text.lastIndexOf('}');
+    if (j0<0||j1<0) throw new Error('No JSON found in response');
+    const parsed = JSON.parse(text.slice(j0,j1+1));
+    if (!Array.isArray(parsed.plants)) throw new Error('Unexpected JSON structure');
+
+    setStatus(`✓ ${parsed.plants.length} plants analysed — ${geoCtx}.`,'done');
+    render(parsed.plants, geoCtx);
+  } catch(err) {
+    setStatus(`Error: ${err.message}`,'error');
+    console.error(err);
+  }
+  btn.disabled = false;
+}
+
+function render(plants, geoCtx) {
+  const bycat = { herb:[], shrub:[], tree:[] };
+  for (const p of plants) {
+    const c = p.category||'herb';
+    if (bycat[c]) bycat[c].push(p);
+  }
+
+  const counts = {};
+  for (const p of plants)
+    for (const c of (p.colours||[]))
+      counts[c] = (counts[c]||0)+1;
+
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const grand  = sorted.reduce((s,[,v])=>s+v,0);
+  const maxN   = sorted[0]?.[1]||1;
+
+  // Bars — sorted ascending (least frequent at top, most at bottom)
+  const sortedAsc = [...sorted].reverse();
+  document.getElementById('barList').innerHTML = sortedAsc.map(([name,n],i) => `
+    <div class="bar-row" data-colour="${name}" onmouseenter="highlightColour('${name}')" onmouseleave="clearHighlight()">
+      <div class="bar-name">${name}</div>
+      <div class="bar-track">
+        <div class="bar-fill" data-w="${Math.round(n/maxN*100)}"
+          style="width:0;background:${getColour(name)}"></div>
+      </div>
+      <div class="bar-n">${n}</div>
+    </div>`).join('');
+
+  drawDonut(sorted, grand);
+
+  for (const cat of ['herb','shrub','tree']) {
+    const cc={};
+    for (const p of bycat[cat])
+      for (const c of (p.colours||[]))
+        cc[c]=(cc[c]||0)+1;
+    const cs=Object.entries(cc).sort((a,b)=>b[1]-a[1]);
+    document.getElementById(cat+'Mosaic').innerHTML = cs.length
+      ? cs.map(([name,n])=>`
+          <div class="mini-tile">
+            <div class="mini-circle" style="background:${getColour(name)}"></div>
+            ${name}<span style="font-size:.6rem;color:#bbb;margin-left:2px">${n}</span>
+          </div>`).join('')
+      : '<span style="font-size:.7rem;color:#bbb;padding:.4rem">None selected</span>';
+  }
+
+  for (const cat of ['herb','shrub','tree']) {
+    document.getElementById(cat+'Cards').innerHTML = bycat[cat].length
+      ? bycat[cat].map(p=>`
+          <div class="sp-card">
+            <div class="sp-scientific">${p.scientific_name||p.common_name}</div>
+            <div class="sp-common">${p.common_name}</div>
+            ${p.geo_note?`<div class="sp-geo">${p.geo_note}</div>`:''}
+            <div class="sp-colors">
+              ${(p.colours||[]).map(c=>`
+                <div class="sp-color-tag">
+                  <div class="sp-dot" style="background:${getColour(c)}"></div>
+                  ${c}
+                </div>`).join('')}
+            </div>
+          </div>`).join('')
+      : '<p style="font-size:.76rem;color:#bbb">No plants selected.</p>';
+  }
+
+  document.getElementById('results').style.display='block';
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('.bar-fill').forEach(f=>{
+      f.style.width=f.dataset.w+'%';
+    });
+  }));
+
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function drawDonut(sorted, total) {
+  const svg = document.getElementById('donut');
+  svg.innerHTML = '';
+  const cx=120, cy=120, R=108, ri=62;
+
+  // Sort ascending by count so largest slice ends clockwise at top (most freq = widest, last drawn)
+  // We draw from least→most in clockwise order starting at top
+  const top   = sorted.slice(0, 12);
+  const rest  = sorted.slice(12).reduce((s,[,v])=>s+v, 0);
+  // data: ascending order (smallest first, draws clockwise)
+  const dataDesc = rest > 0 ? [...top, ['other', rest]] : top;
+  const data  = [...dataDesc].reverse(); // least→most, drawn clockwise
+  const dt    = data.reduce((s,[,v])=>s+v, 0);
+
+  // Stroke for white slices — use a light grey border
+  function sliceStroke(name) {
+    const c = getColour(name);
+    return (c === '#f5f2ee' || c === '#f5f0e0' || c === '#f0e8c0') ? '#d0c8c0' : '#f7f4ef';
+  }
+
+  let a = -Math.PI / 2; // start at top
+
+  for (const [name, n] of data) {
+    const sw  = (n / dt) * 2 * Math.PI;
+    const end = a + sw;
+    const midA = a + sw / 2;
+
+    const x1=cx+R*Math.cos(a),   y1=cy+R*Math.sin(a);
+    const x2=cx+R*Math.cos(end), y2=cy+R*Math.sin(end);
+    const xi1=cx+ri*Math.cos(end), yi1=cy+ri*Math.sin(end);
+    const xi2=cx+ri*Math.cos(a),   yi2=cy+ri*Math.sin(a);
+    const lg = sw > Math.PI ? 1 : 0;
+    const d = `M${x1},${y1} A${R},${R} 0 ${lg},1 ${x2},${y2} L${xi1},${yi1} A${ri},${ri} 0 ${lg},0 ${xi2},${yi2} Z`;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', getColour(name));
+    path.setAttribute('stroke', sliceStroke(name));
+    path.setAttribute('stroke-width', '1.5');
+    path.dataset.colour = name;
+    path.style.transition = 'opacity .2s, transform .15s';
+    path.style.transformOrigin = `${cx}px ${cy}px`;
+    path.style.cursor = 'pointer';
+
+    path.addEventListener('mouseenter', () => {
+      highlightColour(name);
+      path.style.transform = `scale(1.03)`;
+    });
+    path.addEventListener('mouseleave', () => {
+      clearHighlight();
+      path.style.transform = '';
+    });
+
+    svg.appendChild(path);
+    a = end;
+  }
+
+  // Centre label
+  const addTxt = (txt, y, size, fill, font) => {
+    const el = document.createElementNS('http://www.w3.org/2000/svg','text');
+    el.setAttribute('x', cx); el.setAttribute('y', y);
+    el.setAttribute('text-anchor','middle');
+    el.setAttribute('fill', fill);
+    el.setAttribute('font-size', size);
+    el.setAttribute('font-family', font || 'Jost,sans-serif');
+    el.textContent = txt;
+    svg.appendChild(el);
+  };
+
+  // Centre tooltip text (updated on hover)
+  const centreNum  = document.createElementNS('http://www.w3.org/2000/svg','text');
+  centreNum.setAttribute('x', cx); centreNum.setAttribute('y', 116);
+  centreNum.setAttribute('text-anchor','middle');
+  centreNum.setAttribute('fill','#1c1714');
+  centreNum.setAttribute('font-size','22');
+  centreNum.setAttribute('font-family','Cormorant Garamond,serif');
+  centreNum.textContent = total;
+  svg.appendChild(centreNum);
+
+  const centreLbl  = document.createElementNS('http://www.w3.org/2000/svg','text');
+  centreLbl.setAttribute('x', cx); centreLbl.setAttribute('y', 132);
+  centreLbl.setAttribute('text-anchor','middle');
+  centreLbl.setAttribute('fill','#6b5e54');
+  centreLbl.setAttribute('font-size','10');
+  centreLbl.textContent = 'total mentions';
+  svg.appendChild(centreLbl);
+
+  // Store refs so highlightColour can update them
+  svg._centreNum = centreNum;
+  svg._centreLbl = centreLbl;
+  svg._total     = total;
+  svg._data      = data;
+  svg._dt        = dt;
+}
+
+function highlightColour(name) {
+  // Dim all donut slices except hovered
+  const svg = document.getElementById('donut');
+  svg.querySelectorAll('path').forEach(p => {
+    p.style.opacity = p.dataset.colour === name ? '1' : '0.25';
+  });
+  // Highlight matching bar row
+  document.querySelectorAll('.bar-row').forEach(row => {
+    row.classList.toggle('highlighted', row.dataset.colour === name);
+    const fill = row.querySelector('.bar-fill');
+    if (fill) fill.style.opacity = row.dataset.colour === name ? '1' : '0.3';
+  });
+  // Update centre label
+  if (svg._data) {
+    const entry = svg._data.find(([n]) => n === name);
+    if (entry) {
+      const pct = Math.round(entry[1] / svg._dt * 100);
+      svg._centreNum.textContent = pct + '%';
+      svg._centreLbl.textContent = name;
+    }
+  }
+}
+
+function clearHighlight() {
+  const svg = document.getElementById('donut');
+  svg.querySelectorAll('path').forEach(p => { p.style.opacity = '1'; });
+  document.querySelectorAll('.bar-row').forEach(row => {
+    row.classList.remove('highlighted');
+    const fill = row.querySelector('.bar-fill');
+    if (fill) fill.style.opacity = '1';
+  });
+  if (svg._total !== undefined) {
+    svg._centreNum.textContent = svg._total;
+    svg._centreLbl.textContent = 'total mentions';
+  }
+}
+</script>
+</body>
+</html>
